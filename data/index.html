@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Configuración WiFi</title>
+
+    <link rel="stylesheet" href="/style.css">
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>Configuración WiFi</h1>
+
+        <p>Selecciona tu red WiFi.</p>
+
+
+        <!-- FORMULARIO DE CONEXIÓN -->
+
+        <form id="wifiForm">
+
+            <label for="redes">
+                Red WiFi:
+            </label>
+
+            <select id="redes" name="ssid">
+
+                <option value="">
+                    Buscando redes...
+                </option>
+
+            </select>
+
+
+            <label for="password">
+                Contraseña:
+            </label>
+
+            <div class="password-container">
+
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Contraseña WiFi"
+                    required
+                >
+
+                <button
+                    type="button"
+                    id="mostrarPassword"
+                    onclick="mostrarOcultarPassword()"
+                >
+                    👁️
+                </button>
+
+            </div>
+
+
+            <button
+                type="submit"
+                id="botonConectar"
+            >
+                Conectar
+            </button>
+
+        </form>
+
+
+        <!-- MENSAJE DE CONEXIÓN -->
+
+        <div id="estado"></div>
+
+
+        <!-- ESTADO DE LA CONEXIÓN WIFI -->
+
+        <div id="estadoWifi">
+
+            <h2>Estado WiFi</h2>
+
+            <p>
+                Estado:
+                <span id="estadoConexion">
+                    Comprobando...
+                </span>
+            </p>
+
+            <p>
+                Red:
+                <span id="nombreRed">
+                    -
+                </span>
+            </p>
+
+            <p>
+                IP:
+                <span id="direccionIP">
+                    -
+                </span>
+            </p>
+
+            <p>
+                Señal:
+                <span id="nivelSenal">
+                    -
+                </span>
+            </p>
+
+
+            <!-- BARRAS DE SEÑAL -->
+
+            <div class="wifi-icon">
+
+                <div id="wifiArco3"></div>
+                <div id="wifiArco2"></div>
+                <div id="wifiArco1"></div>
+
+                <div id="wifiPunto"></div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- JAVASCRIPT -->
+
+    <script src="/script.js"></script>
+
+
+    <!-- CARGAR REDES AL ABRIR LA PÁGINA -->
+
+    <script>
+
+        cargarRedes();
+
+    </script>
+
+</body>
+
+</html>
