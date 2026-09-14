@@ -30,6 +30,9 @@ const unsigned long intervaloMQTT = 5000;
 float temperaturaActual = NAN;
 float humedadActual = NAN;
 
+int contadorErroresDHT22 = 0;
+bool errorDHT22 = false;
+
 // ==================================================
 // ACTUALIZAR OLED
 // ==================================================
@@ -99,7 +102,7 @@ void actualizarOLED()
 // ACTUALIZAR DHT22
 // ==================================================
 
-void actualizarDHT()
+bool actualizarDHT()
 {
     float temperatura = leerTemperatura();
 
@@ -113,7 +116,7 @@ void actualizarDHT()
     {
         Serial.println("Error leyendo DHT22");
 
-        return;
+        return false;;
     }
 
     // ------------------------------------------
@@ -139,6 +142,14 @@ void actualizarDHT()
     Serial.print(humedadActual);
 
     Serial.println(" %");
+
+    return true;
+}
+
+void resetearDHT()
+{
+    Serial.println("Reiniciando ESP8266...");
+
 }
 
 // ==================================================
@@ -345,7 +356,23 @@ void loop()
         tiempoDHT =
             ahora;
 
-        actualizarDHT();
+        errorDHT22 = actualizarDHT();
+    }
+
+    if(errorDHT22)
+    {
+        contadorErroresDHT22 = 0;
+    }
+    else
+    {
+        contadorErroresDHT22++;
+
+        if(contadorErroresDHT22 >= 5)
+        {
+            Serial.println("Error DHT22: reiniciando ESP8266");
+
+            resetearDHT();
+        }
     }
 
     // ==================================================
