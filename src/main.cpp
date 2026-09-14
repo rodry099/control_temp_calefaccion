@@ -10,6 +10,8 @@
 #include "mqtt.h"
 #include "mdns.h"
 
+const int PIN_ALIMENTACION = 14; // D5
+
 // ==================================================
 // TEMPORIZADORES
 // ==================================================
@@ -148,8 +150,13 @@ bool actualizarDHT()
 
 void resetearDHT()
 {
-    Serial.println("Reiniciando ESP8266...");
+    Serial.println("Reiniciando DHT22");
+    digitalWrite(PIN_ALIMENTACION, LOW);
+    
+    delay(2000);
 
+    digitalWrite(PIN_ALIMENTACION, HIGH);
+    contadorErroresDHT22 = 0;
 }
 
 // ==================================================
@@ -171,6 +178,15 @@ void setup()
     Serial.print("Device ID: ");
 
     Serial.println(id);
+    // ==================================================
+    //  iniciar pin de alimentación del DHT22
+    //===================================================
+
+    pinMode(PIN_ALIMENTACION, OUTPUT);
+
+    digitalWrite(PIN_ALIMENTACION, HIGH);
+
+    delay(2000); // Esperar 2 segundos para que el DHT22 se estabilice
 
     // ==================================================
     // INICIAR DHT22
@@ -359,17 +375,13 @@ void loop()
         errorDHT22 = actualizarDHT();
     }
 
-    if(errorDHT22)
-    {
-        contadorErroresDHT22 = 0;
-    }
-    else
+    if(errorDHT22 == false)
     {
         contadorErroresDHT22++;
 
         if(contadorErroresDHT22 >= 5)
         {
-            Serial.println("Error DHT22: reiniciando ESP8266");
+            Serial.println("Error DHT22: reiniciando DHT22");
 
             resetearDHT();
         }
