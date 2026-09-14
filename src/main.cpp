@@ -147,20 +147,17 @@ void actualizarDHT()
 
 void setup()
 {
-    Serial.begin(9600);
+    Serial.begin(115200);
 
     // ==================================================
     // IDENTIFICAR ESP8266
     // ==================================================
 
-    String id =
-        "ESP8266_" +
-        String(ESP.getChipId(), HEX);
+    String id = "ESP8266_" + String(ESP.getChipId(), HEX);
 
     id.toUpperCase();
 
-    Serial.print(
-        "Device ID: ");
+    Serial.print("Device ID: ");
 
     Serial.println(id);
 
