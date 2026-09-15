@@ -3,48 +3,43 @@
 
 #include "dht_sensor.h"
 
-
 // ==========================================
 // CONFIGURACIÓN
 // ==========================================
 
-#define DHT_PIN 2
+#define DHT_PIN D5
 #define DHT_TYPE DHT22
 
 // ==========================================
 // OBJETO DHT
 // ==========================================
 
-DHT dht(DHT_PIN,DHT_TYPE);
+DHT dht(DHT_PIN, DHT_TYPE);
 
 // ==========================================
 // INICIAR DHT
 // ==========================================
 
-void iniciarDHT()
-{
-    dht.begin();
+void iniciarDHT() {
+  dht.begin();
 
-    Serial.println("DHT11 iniciado");
+  Serial.println("DHT22 iniciado");
 }
 
+float leerTemperatura() {
+  float temperatura = dht.readTemperature();
 
-float leerTemperatura()
-{
-    float temperatura = dht.readTemperature();
+  Serial.print("LECTURA TEMPERATURA = ");
+  Serial.println(temperatura);
 
-    Serial.print("LECTURA TEMPERATURA = ");
-    Serial.println(temperatura);
-
-    return temperatura;
+  return temperatura;
 }
 
-float leerHumedad()
-{
-    float humedad = dht.readHumidity();
+float leerHumedad() {
+  float humedad = dht.readHumidity();
 
-    Serial.print("LECTURA HUMEDAD = ");
-    Serial.println(humedad);
+  Serial.print("LECTURA HUMEDAD = ");
+  Serial.println(humedad);
 
-    return humedad;
+  return humedad;
 }

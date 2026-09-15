@@ -1,14 +1,14 @@
 #include <Arduino.h>
-#include <LittleFS.h>
 #include <ESP8266WiFi.h>
+#include <LittleFS.h>
 
-#include "wifi.h"
-#include "webserver.h"
 #include "config.h"
-#include "oled.h"
 #include "dht_sensor.h"
-#include "mqtt.h"
 #include "mdns.h"
+#include "mqtt.h"
+#include "oled.h"
+#include "webserver.h"
+#include "wifi.h"
 
 // ==================================================
 // TEMPORIZADORES
@@ -34,360 +34,286 @@ float humedadActual = NAN;
 // ACTUALIZAR OLED
 // ==================================================
 
-void actualizarOLED()
-{
-    bool conectado = WiFi.status() == WL_CONNECTED;
+void actualizarOLED() {
+  bool conectado = WiFi.status() == WL_CONNECTED;
 
-    String ssid;
-    String ip;
-    int rssi = 0;
+  String ssid;
+  String ip;
+  int rssi = 0;
 
-    // ------------------------------------------
-    // DATOS WIFI
-    // ------------------------------------------
+  // ------------------------------------------
+  // DATOS WIFI
+  // ------------------------------------------
 
-    if (conectado)
-    {
-        ssid = WiFi.SSID();
-        ip = WiFi.localIP().toString();
-        rssi = WiFi.RSSI();
-    }
-    else
-    {
-        ssid = WiFi.softAPSSID();
-        ip = WiFi.softAPIP().toString();
-        rssi = 0;
-    }
+  if (conectado) {
+    ssid = WiFi.SSID();
+    ip = WiFi.localIP().toString();
+    rssi = WiFi.RSSI();
+  } else {
+    ssid = WiFi.softAPSSID();
+    ip = WiFi.softAPIP().toString();
+    rssi = 0;
+  }
 
-    // ------------------------------------------
-    // UTILIZAR DATOS DHT22 YA LEÍDOS
-    // ------------------------------------------
+  // ------------------------------------------
+  // UTILIZAR DATOS DHT22 YA LEÍDOS
+  // ------------------------------------------
 
-    float temperatura = temperaturaActual;
+  float temperatura = temperaturaActual;
 
-    float humedad = humedadActual;
+  float humedad = humedadActual;
 
-    // ------------------------------------------
-    // SI TODAVÍA NO HAY UNA LECTURA VÁLIDA
-    // MOSTRAR 0
-    // ------------------------------------------
+  // ------------------------------------------
+  // SI TODAVÍA NO HAY UNA LECTURA VÁLIDA
+  // MOSTRAR 0
+  // ------------------------------------------
 
-    if (isnan(temperatura))
-    {
-        temperatura = 0;
-    }
+  if (isnan(temperatura)) {
+    temperatura = 0;
+  }
 
-    if (isnan(humedad))
-    {
-        humedad = 0;
-    }
+  if (isnan(humedad)) {
+    humedad = 0;
+  }
 
-    // ------------------------------------------
-    // ACTUALIZAR OLED
-    // ------------------------------------------
+  // ------------------------------------------
+  // ACTUALIZAR OLED
+  // ------------------------------------------
 
-    actualizarPantalla(
-        conectado,
-        ssid.c_str(),
-        ip.c_str(),
-        rssi,
-        temperatura,
-        humedad);
+  actualizarPantalla(conectado, ssid.c_str(), ip.c_str(), rssi, temperatura,
+                     humedad);
 }
 
 // ==================================================
 // ACTUALIZAR DHT22
 // ==================================================
 
-void actualizarDHT()
-{
-    float temperatura = leerTemperatura();
+void actualizarDHT() {
+  float temperatura = leerTemperatura();
 
-    float humedad = leerHumedad();
+  float humedad = leerHumedad();
 
-    // ------------------------------------------
-    // COMPROBAR LECTURA
-    // ------------------------------------------
+  // ------------------------------------------
+  // COMPROBAR LECTURA
+  // ------------------------------------------
 
-    if (isnan(temperatura) || isnan(humedad))
-    {
-        Serial.println("Error leyendo DHT22");
+  if (isnan(temperatura) || isnan(humedad)) {
+    Serial.println("Error leyendo DHT22");
 
-        return;
-    }
+    return;
+  }
 
-    // ------------------------------------------
-    // GUARDAR VALORES
-    // ------------------------------------------
+  // ------------------------------------------
+  // GUARDAR VALORES
+  // ------------------------------------------
 
-    temperaturaActual = temperatura;
+  temperaturaActual = temperatura;
 
-    humedadActual = humedad;
+  humedadActual = humedad;
 
-    // ------------------------------------------
-    // MONITOR SERIE
-    // ------------------------------------------
+  // ------------------------------------------
+  // MONITOR SERIE
+  // ------------------------------------------
 
-    Serial.print("Temperatura: ");
+  Serial.print("Temperatura: ");
 
-    Serial.print(temperaturaActual);
+  Serial.print(temperaturaActual);
 
-    Serial.println(" C");
+  Serial.println(" C");
 
-    Serial.print("Humedad: ");
+  Serial.print("Humedad: ");
 
-    Serial.print(humedadActual);
+  Serial.print(humedadActual);
 
-    Serial.println(" %");
+  Serial.println(" %");
 }
 
 // ==================================================
 // SETUP
 // ==================================================
 
-void setup()
-{
-    Serial.begin(9600);
+void setup() {
+  Serial.begin(9600);
 
-    // ==================================================
-    // IDENTIFICAR ESP8266
-    // ==================================================
+  // ==================================================
+  // IDENTIFICAR ESP8266
+  // ==================================================
 
-    String id =
-        "ESP8266_" +
-        String(ESP.getChipId(), HEX);
+  String id = "ESP8266_" + String(ESP.getChipId(), HEX);
 
-    id.toUpperCase();
+  id.toUpperCase();
 
-    Serial.print(
-        "Device ID: ");
+  Serial.print("Device ID: ");
 
-    Serial.println(id);
+  Serial.println(id);
 
-    // ==================================================
-    // INICIAR DHT22
-    // ==================================================
+  // ==================================================
+  // INICIAR DHT22
+  // ==================================================
 
-    iniciarDHT();
+  iniciarDHT();
 
-    // ==================================================
-    // INICIAR OLED
-    // ==================================================
+  // ==================================================
+  // INICIAR OLED
+  // ==================================================
 
-    iniciarOLED();
+  iniciarOLED();
 
-    // ==================================================
-    // INICIAR LITTLEFS
-    // ==================================================
+  // ==================================================
+  // INICIAR LITTLEFS
+  // ==================================================
 
-    if (!LittleFS.begin())
-    {
-        Serial.println(
-            "Error al iniciar LittleFS");
+  if (!LittleFS.begin()) {
+    Serial.println("Error al iniciar LittleFS");
 
-        return;
-    }
+    return;
+  }
 
-    Serial.println(
-        "LittleFS iniciado correctamente");
+  Serial.println("LittleFS iniciado correctamente");
 
-    // ==================================================
-    // COMPROBAR CREDENCIALES
-    // ==================================================
+  // ==================================================
+  // COMPROBAR CREDENCIALES
+  // ==================================================
 
-    if (hayCredenciales())
-    {
-        Serial.println(
-            "Credenciales encontradas");
+  if (hayCredenciales()) {
+    Serial.println("Credenciales encontradas");
 
-        String ssid;
-        String password;
+    String ssid;
+    String password;
 
-        if (leerCredenciales(
-                ssid,
-                password))
-        {
-            Serial.print(
-                "Intentando conectar a: ");
+    if (leerCredenciales(ssid, password)) {
+      Serial.print("Intentando conectar a: ");
 
-            Serial.println(
-                ssid);
+      Serial.println(ssid);
 
-            if (conectarWifi(
-                    ssid,
-                    password))
-            {
-                Serial.println(
-                    "Conexión automática correcta");
+      if (conectarWifi(ssid, password)) {
+        Serial.println("Conexión automática correcta");
 
-                // ------------------------------------------
-                // MDNS
-                // ------------------------------------------
+        // ------------------------------------------
+        // MDNS
+        // ------------------------------------------
 
-                iniciarMDNS();
+        iniciarMDNS();
 
-                // ------------------------------------------
-                // MQTT
-                // ------------------------------------------
+        // ------------------------------------------
+        // MQTT
+        // ------------------------------------------
 
-                String id =
-                    "ESP8266_" +
-                    String(
-                        ESP.getChipId(),
-                        HEX);
+        String id = "ESP8266_" + String(ESP.getChipId(), HEX);
 
-                id.toUpperCase();
+        id.toUpperCase();
 
-                Serial.print(
-                    "Device ID: ");
+        Serial.print("Device ID: ");
 
-                Serial.println(
-                    id);
+        Serial.println(id);
 
-                iniciarMQTT(id);
-            }
-            else
-            {
-                Serial.println(
-                    "No se pudo conectar");
-
-                iniciarPuntoAcceso();
-            }
-        }
-        else
-        {
-            Serial.println(
-                "Error leyendo credenciales");
-
-            iniciarPuntoAcceso();
-        }
-    }
-    else
-    {
-        Serial.println(
-            "No existen credenciales");
+        iniciarMQTT(id);
+      } else {
+        Serial.println("No se pudo conectar");
 
         iniciarPuntoAcceso();
+      }
+    } else {
+      Serial.println("Error leyendo credenciales");
+
+      iniciarPuntoAcceso();
     }
+  } else {
+    Serial.println("No existen credenciales");
 
-    // ==================================================
-    // MOSTRAR ESTADO WIFI EN OLED
-    // ==================================================
+    iniciarPuntoAcceso();
+  }
 
-    if (WiFi.status() == WL_CONNECTED)
-    {
-        String ssid =
-            WiFi.SSID();
+  // ==================================================
+  // MOSTRAR ESTADO WIFI EN OLED
+  // ==================================================
 
-        String ip =
-            WiFi.localIP().toString();
+  if (WiFi.status() == WL_CONNECTED) {
+    String ssid = WiFi.SSID();
 
-        int rssi =
-            WiFi.RSSI();
+    String ip = WiFi.localIP().toString();
 
-        mostrarWiFi(
-            true,
-            ssid.c_str(),
-            ip.c_str(),
-            rssi);
-    }
-    else
-    {
-        String ip =
-            WiFi.softAPIP().toString();
+    int rssi = WiFi.RSSI();
 
-        mostrarWiFi(
-            false,
-            "",
-            ip.c_str(),
-            0);
-    }
+    mostrarWiFi(true, ssid.c_str(), ip.c_str(), rssi);
+  } else {
+    String ip = WiFi.softAPIP().toString();
 
-    // ==================================================
-    // INICIAR SERVIDOR
-    // ==================================================
+    mostrarWiFi(false, "", ip.c_str(), 0);
+  }
 
-    iniciarServidor();
+  // ==================================================
+  // INICIAR SERVIDOR
+  // ==================================================
+
+  iniciarServidor();
 }
 
 // ==================================================
 // LOOP
 // ==================================================
 
-void loop()
-{
-    // Serial.println("LOOP OK");
+void loop() {
+  // Serial.println("LOOP OK");
 
-    // ==================================================
-    // SERVIDOR WEB
-    // ==================================================
+  // ==================================================
+  // SERVIDOR WEB
+  // ==================================================
 
-    atenderServidor();
+  atenderServidor();
 
-    // ==================================================
-    // MANTENER MQTT
-    // ==================================================
+  // ==================================================
+  // MANTENER MQTT
+  // ==================================================
 
-    mantenerMQTT();
+  mantenerMQTT();
 
-    // ==================================================
-    // TIEMPO ACTUAL
-    // ==================================================
+  // ==================================================
+  // TIEMPO ACTUAL
+  // ==================================================
 
-    unsigned long ahora =
-        millis();
+  unsigned long ahora = millis();
 
-    // ==================================================
-    // LEER DHT22 CADA 2,5 SEGUNDOS
-    // ==================================================
+  // ==================================================
+  // LEER DHT22 CADA 2,5 SEGUNDOS
+  // ==================================================
 
-    if (
-        ahora - tiempoDHT >=
-        intervaloDHT)
-    {
-        tiempoDHT =
-            ahora;
+  if (ahora - tiempoDHT >= intervaloDHT) {
+    tiempoDHT = ahora;
 
-        actualizarDHT();
+    actualizarDHT();
+  }
+
+  // ==================================================
+  // PUBLICAR MQTT CADA 5 SEGUNDOS
+  // ==================================================
+
+  if (ahora - tiempoMQTT >= intervaloMQTT) {
+    tiempoMQTT = ahora;
+
+    // ------------------------------------------
+    // TEMPERATURA
+    // ------------------------------------------
+
+    if (!isnan(temperaturaActual)) {
+      publicarTemperatura(temperaturaActual);
     }
 
-    // ==================================================
-    // PUBLICAR MQTT CADA 5 SEGUNDOS
-    // ==================================================
+    // ------------------------------------------
+    // HUMEDAD
+    // ------------------------------------------
 
-    if (
-        ahora - tiempoMQTT >=
-        intervaloMQTT)
-    {
-        tiempoMQTT =
-            ahora;
-
-        // ------------------------------------------
-        // TEMPERATURA
-        // ------------------------------------------
-
-        if (!isnan(temperaturaActual))
-        {
-            publicarTemperatura(temperaturaActual);
-        }
-
-        // ------------------------------------------
-        // HUMEDAD
-        // ------------------------------------------
-
-        if (!isnan(humedadActual))
-        {
-            publicarHumedad(humedadActual);
-        }
+    if (!isnan(humedadActual)) {
+      publicarHumedad(humedadActual);
     }
+  }
 
-    // ==================================================
-    // ACTUALIZAR OLED CADA 2 SEGUNDOS
-    // ==================================================
+  // ==================================================
+  // ACTUALIZAR OLED CADA 2 SEGUNDOS
+  // ==================================================
 
-    if (ahora - tiempoOLED >= intervaloOLED)
-    {
-        tiempoOLED = ahora;
-        actualizarOLED();
-    }
+  if (ahora - tiempoOLED >= intervaloOLED) {
+    tiempoOLED = ahora;
+    actualizarOLED();
+  }
 }
