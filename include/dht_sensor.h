@@ -3,8 +3,6 @@
 
 void iniciarDHT();
 
-float leerTemperatura();
-
-float leerHumedad();
+bool leerDHT(float &temperatura, float &humedad);
 
 #endif

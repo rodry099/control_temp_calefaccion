@@ -89,15 +89,14 @@ void actualizarOLED() {
 // ==================================================
 
 void actualizarDHT() {
-  float temperatura = leerTemperatura();
-
-  float humedad = leerHumedad();
+  float temperatura;
+  float humedad;
 
   // ------------------------------------------
   // COMPROBAR LECTURA
   // ------------------------------------------
 
-  if (isnan(temperatura) || isnan(humedad)) {
+  if (!leerDHT(temperatura, humedad)) {
     Serial.println("Error leyendo DHT22");
 
     return;

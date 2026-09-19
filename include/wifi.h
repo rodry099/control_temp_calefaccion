@@ -1,6 +1,8 @@
 #ifndef WIFI_H
 #define WIFI_H
 
+#include <Arduino.h>
+
 void iniciarPuntoAcceso();
 void escanearRedes();
 bool conectarWifi(String ssid, String password);
