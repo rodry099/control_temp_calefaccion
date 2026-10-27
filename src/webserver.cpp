@@ -79,7 +79,7 @@ void enviarRedes() {
 void enviarEstado() {
   String json = "{";
 
-  if (WiFi.status() == WL_CONNECTED) {
+  if (conexionWifiValida()) {
     json += "\"conectado\":true,";
 
     json += "\"ssid\":\"";

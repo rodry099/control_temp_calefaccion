@@ -68,7 +68,7 @@ void comprobarBotonReset() {
 // ==================================================
 
 void actualizarOLED() {
-  bool conectado = WiFi.status() == WL_CONNECTED;
+  bool conectado = conexionWifiValida();
 
   String ssid;
   String ip;
@@ -216,6 +216,8 @@ void setup() {
     String password;
 
     if (leerCredenciales(ssid, password)) {
+      recordarCredencialesWifi(ssid, password);
+
       Serial.print("Intentando conectar a: ");
 
       Serial.println(ssid);
@@ -243,14 +245,10 @@ void setup() {
 
         iniciarMQTT(id);
       } else {
-        Serial.println("No se pudo conectar");
-
-        iniciarPuntoAcceso();
+        Serial.println("No se pudo conectar; se seguira reintentando sin iniciar el AP");
       }
     } else {
       Serial.println("Error leyendo credenciales");
-
-      iniciarPuntoAcceso();
     }
   } else {
     Serial.println("No existen credenciales");
@@ -262,7 +260,7 @@ void setup() {
   // MOSTRAR ESTADO WIFI EN OLED
   // ==================================================
 
-  if (WiFi.status() == WL_CONNECTED) {
+  if (conexionWifiValida()) {
     String ssid = WiFi.SSID();
 
     String ip = WiFi.localIP().toString();
@@ -289,6 +287,12 @@ void loop() {
   // ==================================================
 
   comprobarBotonReset();
+
+  // ==================================================
+  // MANTENER CONEXION WIFI
+  // ==================================================
+
+  mantenerConexionWifi();
 
   // ==================================================
   // SERVIDOR WEB
