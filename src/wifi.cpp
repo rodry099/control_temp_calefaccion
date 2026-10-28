@@ -3,13 +3,6 @@
 
 #include "wifi.h"
 
-namespace {
-String ssidGuardado;
-String passwordGuardada;
-unsigned long ultimoIntentoReconexion = 0;
-const unsigned long intervaloReconexion = 10000;
-}
-
 void iniciarPuntoAcceso() {
   const char *ssid = "ESP8266_AP";
   const char *password = "12345678";
@@ -57,7 +50,7 @@ bool conectarWifi(String ssid, String password) {
 
   int intentos = 0;
 
-  while (!conexionWifiValida() && intentos < 20) {
+  while (WiFi.status() != WL_CONNECTED && intentos < 20) {
     delay(500);
 
     Serial.print(".");
@@ -67,11 +60,7 @@ bool conectarWifi(String ssid, String password) {
 
   Serial.println();
 
-  if (conexionWifiValida()) {
-    ssidGuardado = ssid;
-    passwordGuardada = password;
-    ultimoIntentoReconexion = millis();
-
+  if (WiFi.status() == WL_CONNECTED) {
     Serial.println("Conectado correctamente");
 
     Serial.print("IP: ");
@@ -80,38 +69,7 @@ bool conectarWifi(String ssid, String password) {
     return true;
   }
 
-  ultimoIntentoReconexion = millis();
   Serial.println("No se pudo conectar");
 
   return false;
-}
-
-void recordarCredencialesWifi(const String &ssid, const String &password) {
-  if (ssid.isEmpty()) {
-    return;
-  }
-
-  ssidGuardado = ssid;
-  passwordGuardada = password;
-}
-
-bool conexionWifiValida() {
-  return WiFi.status() == WL_CONNECTED &&
-         WiFi.localIP() != IPAddress(0, 0, 0, 0);
-}
-
-void mantenerConexionWifi() {
-  if (conexionWifiValida() || ssidGuardado.isEmpty()) {
-    return;
-  }
-
-  unsigned long ahora = millis();
-  if (ahora - ultimoIntentoReconexion < intervaloReconexion) {
-    return;
-  }
-
-  ultimoIntentoReconexion = ahora;
-
-  Serial.println("WiFi desconectado o sin IP; reintentando conexion...");
-  WiFi.begin(ssidGuardado.c_str(), passwordGuardada.c_str());
 }

@@ -7,9 +7,9 @@
 // CONFIGURACIÓN
 // ==========================================
 
-#define DHT_PIN D5
+#define DHT_PIN 14
 #define DHT_TYPE DHT22
-#define DHT_POWER_PIN D6
+#define DHT_POWER_PIN 12
 
 const uint8_t DHT_POWER_ON = LOW;
 const uint8_t DHT_POWER_OFF = HIGH;

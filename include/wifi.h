@@ -6,8 +6,5 @@
 void iniciarPuntoAcceso();
 void escanearRedes();
 bool conectarWifi(String ssid, String password);
-void recordarCredencialesWifi(const String &ssid, const String &password);
-bool conexionWifiValida();
-void mantenerConexionWifi();
 
 #endif

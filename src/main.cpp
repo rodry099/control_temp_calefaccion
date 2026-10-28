@@ -23,11 +23,6 @@ const unsigned long intervaloDHT = 2500;
 unsigned long tiempoMQTT = 0;
 const unsigned long intervaloMQTT = 5000;
 
-const uint8_t PIN_BOTON_RESET = D7;
-const unsigned long TIEMPO_PULSACION_RESET = 3000;
-unsigned long inicioPulsacionReset = 0;
-bool modoConfiguracion = false;
-
 // ==================================================
 // DATOS ACTUALES DEL DHT22
 // ==================================================
@@ -35,40 +30,12 @@ bool modoConfiguracion = false;
 float temperaturaActual = NAN;
 float humedadActual = NAN;
 
-void comprobarBotonReset() {
-  if (digitalRead(PIN_BOTON_RESET) == LOW) {
-    if (inicioPulsacionReset == 0) {
-      inicioPulsacionReset = millis();
-    }
-
-    if (!modoConfiguracion &&
-        millis() - inicioPulsacionReset >= TIEMPO_PULSACION_RESET) {
-      if (!borrarCredenciales()) {
-        Serial.println("No se pudo borrar la configuracion WiFi");
-        inicioPulsacionReset = 0;
-        return;
-      }
-
-      WiFi.disconnect();
-      iniciarPuntoAcceso();
-      iniciarServidor();
-      modoConfiguracion = true;
-
-      Serial.println("Modo configuracion activado");
-    }
-
-    return;
-  }
-
-  inicioPulsacionReset = 0;
-}
-
 // ==================================================
 // ACTUALIZAR OLED
 // ==================================================
 
 void actualizarOLED() {
-  bool conectado = conexionWifiValida();
+  bool conectado = WiFi.status() == WL_CONNECTED;
 
   String ssid;
   String ip;
@@ -167,8 +134,6 @@ void actualizarDHT() {
 void setup() {
   Serial.begin(9600);
 
-  pinMode(PIN_BOTON_RESET, INPUT_PULLUP);
-
   // ==================================================
   // IDENTIFICAR ESP8266
   // ==================================================
@@ -216,8 +181,6 @@ void setup() {
     String password;
 
     if (leerCredenciales(ssid, password)) {
-      recordarCredencialesWifi(ssid, password);
-
       Serial.print("Intentando conectar a: ");
 
       Serial.println(ssid);
@@ -245,10 +208,14 @@ void setup() {
 
         iniciarMQTT(id);
       } else {
-        Serial.println("No se pudo conectar; se seguira reintentando sin iniciar el AP");
+        Serial.println("No se pudo conectar");
+
+        iniciarPuntoAcceso();
       }
     } else {
       Serial.println("Error leyendo credenciales");
+
+      iniciarPuntoAcceso();
     }
   } else {
     Serial.println("No existen credenciales");
@@ -260,7 +227,7 @@ void setup() {
   // MOSTRAR ESTADO WIFI EN OLED
   // ==================================================
 
-  if (conexionWifiValida()) {
+  if (WiFi.status() == WL_CONNECTED) {
     String ssid = WiFi.SSID();
 
     String ip = WiFi.localIP().toString();
@@ -273,6 +240,12 @@ void setup() {
 
     mostrarWiFi(false, "", ip.c_str(), 0);
   }
+
+  // ==================================================
+  // INICIAR SERVIDOR
+  // ==================================================
+
+  iniciarServidor();
 }
 
 // ==================================================
@@ -283,24 +256,10 @@ void loop() {
   // Serial.println("LOOP OK");
 
   // ==================================================
-  // BOTON DE RESET DE CONFIGURACION
-  // ==================================================
-
-  comprobarBotonReset();
-
-  // ==================================================
-  // MANTENER CONEXION WIFI
-  // ==================================================
-
-  mantenerConexionWifi();
-
-  // ==================================================
   // SERVIDOR WEB
   // ==================================================
 
-  if (modoConfiguracion) {
-    atenderServidor();
-  }
+  atenderServidor();
 
   // ==================================================
   // MANTENER MQTT
